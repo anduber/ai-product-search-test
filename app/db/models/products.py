@@ -1,11 +1,16 @@
 import uuid
 from datetime import datetime
 
+from typing import TYPE_CHECKING
 from sqlalchemy import DateTime, Float, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
+
+if TYPE_CHECKING:
+    from app.db.models.product_reviews import ProductReview
+    from app.db.models.product_embeddings import ProductEmbedding
 
 
 class Product(Base):

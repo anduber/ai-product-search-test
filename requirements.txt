@@ -5,3 +5,4 @@ psycopg[binary]
 pgvector
 alembic
 python-dotenv
+google-genai
