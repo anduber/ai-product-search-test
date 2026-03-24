@@ -1,5 +1,6 @@
 import os
 from collections.abc import Sequence
+from ..base import BaseEmbeddingService
 
 try:
     from google import genai
@@ -9,7 +10,7 @@ except ImportError:  # pragma: no cover
     EmbedContentConfig = None
 
 
-class EmbeddingService:
+class GeminiEmbeddingService(BaseEmbeddingService):
     def _normalize_model(self, model: str) -> str:
         return model.removeprefix("models/")
 

@@ -6,3 +6,4 @@ pgvector
 alembic
 python-dotenv
 google-genai
+langchain-google-genai

@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models import Product
-from app.ai.embeddings import EmbeddingService
+from app.ai.embeddings import BaseEmbeddingService
+from app.ai.embeddings.factory import get_embedding_service
 from app.repositories.product_embedding_repository import ProductEmbeddingRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.product import ProductCreate
@@ -21,7 +22,7 @@ class ProductService:
         self,
         product_repository: ProductRepository,
         embedding_repository: ProductEmbeddingRepository,
-        embedding_service: EmbeddingService,
+        embedding_service: BaseEmbeddingService,
     ):
         self.product_repository = product_repository
         self.embedding_repository = embedding_repository
@@ -42,6 +43,7 @@ class ProductService:
             print("embedded text:", text)
             if text:
                 embedding = self.embedding_service.embed_text(text)
+                print("embedded embedding:", len(embedding))
                 self.embedding_repository.create_embedding(product.id, embedding, text)
                 self.embedding_repository.commit()
         except Exception:
@@ -74,5 +76,5 @@ class ProductService:
 def get_product_service(db: Session = Depends(get_db)) -> ProductService:
     product_repo = ProductRepository(db)
     embedding_repo = ProductEmbeddingRepository(db)
-    embedding_service = EmbeddingService()
+    embedding_service = get_embedding_service()
     return ProductService(product_repo, embedding_repo, embedding_service)
