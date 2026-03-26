@@ -1,23 +1,21 @@
-import os
 from .base import BaseEmbeddingService
 from .custom.gemini_embedding import GeminiEmbeddingService
 from .langchain.gemini_embedding import LangchainGeminiEmbeddingService
+from app.core.config import settings, EmbeddingProvider, EmbeddingBackend
 
 def get_embedding_service() -> BaseEmbeddingService:
     """
     Factory function to get the configured embedding service.
     
-    Reads from environment variables:
-    - EMBEDDING_PROVIDER: e.g. "gemini" (default: "gemini")
-    - EMBEDDING_BACKEND: "custom" or "langchain" (default: "custom")
+    Uses settings from app.core.config.
     """
-    provider = os.getenv("EMBEDDING_PROVIDER", "gemini").lower()
-    backend = os.getenv("EMBEDDING_BACKEND", "custom").lower()
+    provider = settings.EMBEDDING_PROVIDER
+    backend = settings.EMBEDDING_BACKEND
 
-    if provider == "gemini":
-        if backend == "custom":
+    if provider == EmbeddingProvider.GEMINI:
+        if backend == EmbeddingBackend.CUSTOM:
             return GeminiEmbeddingService()
-        elif backend == "langchain":
+        elif backend == EmbeddingBackend.LANGCHAIN:
             return LangchainGeminiEmbeddingService()
         else:
             raise ValueError(f"Unsupported embedding backend for gemini: {backend}")

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 from logging.config import fileConfig
 
@@ -9,13 +8,14 @@ from sqlalchemy import engine_from_config, pool
 
 from app.db import models as _models
 from app.db.database import Base
+from app.core.config import settings
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-database_url = os.getenv("DATABASE_URL")
+database_url = settings.DATABASE_URL
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 

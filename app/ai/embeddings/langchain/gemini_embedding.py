@@ -1,5 +1,5 @@
-import os
 from ..base import BaseEmbeddingService
+from app.core.config import settings
 
 try:
     from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -15,16 +15,16 @@ class LangchainGeminiEmbeddingService(BaseEmbeddingService):
                 "Please run `pip install langchain-google-genai`."
             )
         
-        api_key = os.getenv("GOOGLE_API_KEY")
+        api_key = settings.GOOGLE_API_KEY
         if not api_key:
             raise RuntimeError("GOOGLE_API_KEY is not set")
             
-        model = os.getenv("GEMINI_EMBEDDING_MODEL", "models/gemini-embedding-001")
+        model = settings.GEMINI_EMBEDDING_MODEL
         # LangChain uses 'model' instead of 'model_name' in newer versions usually
         self.embeddings = GoogleGenerativeAIEmbeddings(
             model=model,
             google_api_key=api_key,
-            output_dimensionality=1536
+            output_dimensionality=settings.EMBEDDING_DIM
         )
 
     def embed_text(self, text: str) -> list[float]:

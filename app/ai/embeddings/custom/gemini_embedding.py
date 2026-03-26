@@ -1,6 +1,6 @@
-import os
 from collections.abc import Sequence
 from ..base import BaseEmbeddingService
+from app.core.config import settings
 
 try:
     from google import genai
@@ -15,9 +15,9 @@ class GeminiEmbeddingService(BaseEmbeddingService):
         return model.removeprefix("models/")
 
     def __init__(self) -> None:
-        self.api_key = os.getenv("GOOGLE_API_KEY")
-        self.model = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
-        self.output_dimensionality = int(os.getenv("GEMINI_EMBEDDING_DIM", "1536"))
+        self.api_key = settings.GOOGLE_API_KEY
+        self.model = settings.GEMINI_EMBEDDING_MODEL
+        self.output_dimensionality = settings.EMBEDDING_DIM
         self.client = genai.Client(api_key=self.api_key) if genai is not None and self.api_key else None
 
     def embed_text(self, text: str) -> list[float]:
