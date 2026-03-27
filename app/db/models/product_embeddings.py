@@ -17,7 +17,7 @@ class ProductEmbedding(Base):
         ForeignKey("products.id", ondelete="CASCADE"),
         nullable=False,
     )
-    embedding: Mapped[list[float]] = mapped_column(Vector(1536), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(1024), nullable=False)
     text_content: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     product: Mapped["Product"] = relationship(back_populates="embeddings")

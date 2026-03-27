@@ -30,27 +30,22 @@ class ProductService:
 
     def create_product(self, product_data: ProductCreate) -> Product:
         product = Product(**product_data.model_dump())
-        self.product_repository.create(product)
         try:
-            self.product_repository.commit()
-        except SQLAlchemyError:
-            self.product_repository.rollback()
-            raise
-        product = self.product_repository.refresh(product)
+            self.product_repository.create(product)
+            self.product_repository.flush()
+            product = self.product_repository.refresh(product)
 
-        try:
             text = build_product_text(product)
-            print("embedded text:", text)
             if text:
                 embedding = self.embedding_service.embed_text(text)
-                print("embedded embedding:", len(embedding))
                 self.embedding_repository.create_embedding(product.id, embedding, text)
-                self.embedding_repository.commit()
-        except Exception:
-            self.embedding_repository.rollback()
-            logger.exception("Failed to generate/store embedding for product_id=%s", product.id)
 
-        return product
+            self.product_repository.commit()
+            return product
+        except Exception:
+            self.product_repository.rollback()
+            logger.exception("Failed to create product and embedding for product_id=%s", getattr(product, "id", None))
+            raise
 
     def get_product(self, product_id: uuid.UUID) -> Product | None:
         return self.product_repository.get_by_id(product_id)

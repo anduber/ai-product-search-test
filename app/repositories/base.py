@@ -24,6 +24,9 @@ class BaseRepository(Generic[ModelType]):
         self.db.add(obj)
         return obj
 
+    def flush(self) -> None:
+        self.db.flush()
+
     def delete(self, obj: ModelType) -> None:
         self.db.delete(obj)
 
