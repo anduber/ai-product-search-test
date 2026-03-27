@@ -4,9 +4,11 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.database import SessionLocal
 from app.routers.product import product_router
+from app.routers.search import search_router
 
 app = FastAPI(title="AI Product Search")
 app.include_router(product_router, prefix="/products")
+app.include_router(search_router, prefix="/search")
 
 
 @app.get("/health/db")
