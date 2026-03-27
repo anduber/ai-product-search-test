@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Generic, TypeVar
 
 from sqlalchemy import select
@@ -24,17 +26,15 @@ class BaseRepository(Generic[ModelType]):
         self.db.add(obj)
         return obj
 
+    def add_all(self, objs: list[ModelType]) -> list[ModelType]:
+        self.db.add_all(objs)
+        return objs
+
     def flush(self) -> None:
         self.db.flush()
 
     def delete(self, obj: ModelType) -> None:
         self.db.delete(obj)
-
-    def commit(self) -> None:
-        self.db.commit()
-
-    def rollback(self) -> None:
-        self.db.rollback()
 
     def refresh(self, obj: ModelType) -> ModelType:
         self.db.refresh(obj)

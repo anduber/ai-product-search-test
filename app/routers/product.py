@@ -21,6 +21,20 @@ async def create_product_endpoint(
     return product
 
 
+@product_router.post("/bulk", response_model=list[ProductResponse], status_code=status.HTTP_201_CREATED)
+async def create_products_bulk_endpoint(
+    products: list[ProductCreate],
+    service: ProductService = Depends(get_product_service),
+) -> list[ProductResponse]:
+    try:
+        return service.create_products_bulk(products)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create products",
+        ) from exc
+
+
 @product_router.get("/", response_model=list[ProductResponse])
 async def get_all_products_endpoint(
     service: ProductService = Depends(get_product_service),

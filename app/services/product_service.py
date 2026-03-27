@@ -2,11 +2,10 @@ import uuid
 import logging
 
 from fastapi import Depends
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.db.models import Product
+from app.db.models import Product, ProductEmbedding
 from app.ai.embeddings import BaseEmbeddingService
 from app.ai.embeddings.factory import get_embedding_service
 from app.repositories.product_embedding_repository import ProductEmbeddingRepository
@@ -29,22 +28,49 @@ class ProductService:
         self.embedding_service = embedding_service
 
     def create_product(self, product_data: ProductCreate) -> Product:
-        product = Product(**product_data.model_dump())
         try:
-            self.product_repository.create(product)
-            self.product_repository.flush()
-            product = self.product_repository.refresh(product)
+            db = self.product_repository.db
+            with db.begin():
+                product = Product(**product_data.model_dump())
+                self.product_repository.create(product)
+                db.flush()
 
-            text = build_product_text(product)
-            if text:
-                embedding = self.embedding_service.embed_text(text)
-                self.embedding_repository.create_embedding(product.id, embedding, text)
-
-            self.product_repository.commit()
+                text = build_product_text(product)
+                if text:
+                    embedding = self.embedding_service.embed_text(text)
+                    self.embedding_repository.create_embedding(product.id, embedding, text)
             return product
         except Exception:
-            self.product_repository.rollback()
-            logger.exception("Failed to create product and embedding for product_id=%s", getattr(product, "id", None))
+            logger.exception("Failed to create product and embedding")
+            raise
+
+    def create_products_bulk(self, products: list[ProductCreate]) -> list[Product]:
+        try:
+            db = self.product_repository.db
+            with db.begin():
+                product_entities = [Product(**product.model_dump()) for product in products]
+                self.product_repository.add_all(product_entities)
+                db.flush()
+
+                embedding_entities: list[ProductEmbedding] = []
+                for product in product_entities:
+                    text = build_product_text(product)
+                    if not text:
+                        raise ValueError("Failed to build text for embedding generation")
+                    embedding = self.embedding_service.embed_text(text)
+                    embedding_entities.append(
+                        ProductEmbedding(
+                            product_id=product.id,
+                            embedding=embedding,
+                            text_content=text,
+                        )
+                    )
+
+                self.embedding_repository.add_all(embedding_entities)
+
+            return product_entities
+        except Exception:
+            logger.exception("Failed to create products in bulk")
             raise
 
     def get_product(self, product_id: uuid.UUID) -> Product | None:
