@@ -32,4 +32,6 @@ class Settings:
         self.EMBEDDING_BACKEND: EmbeddingBackend = EmbeddingBackend(backend_raw)
 
         self.EMBEDDING_DIM: int = int(os.getenv("EMBEDDING_DIM", "1536"))
+        self.SEARCH_MIN_SIMILARITY: float = float(os.getenv("SEARCH_MIN_SIMILARITY", "0.45"))
+
 settings = Settings()

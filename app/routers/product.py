@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.schemas.product import ProductCreate, ProductResponse
@@ -37,9 +37,11 @@ async def create_products_bulk_endpoint(
 
 @product_router.get("/", response_model=list[ProductResponse])
 async def get_all_products_endpoint(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1, le=50),
     service: ProductService = Depends(get_product_service),
 ) -> list[ProductResponse]:
-    return service.get_all_products()
+    return service.get_all_products(page=page, page_size=page_size)
 
 
 @product_router.get("/{product_id}", response_model=ProductResponse)

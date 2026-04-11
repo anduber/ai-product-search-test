@@ -1,6 +1,7 @@
 import uuid
 from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import Product
@@ -16,6 +17,15 @@ class ProductRepository(BaseRepository[Product]):
 
     def list_products(self) -> list[Product]:
         return self.list()
+
+    def list_products_paginated(self, offset: int, limit: int) -> list[Product]:
+        stmt = (
+            select(Product)
+            .order_by(Product.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return list(self.db.execute(stmt).scalars().all())
 
     def search_by_embedding(self, query_vector: list[float]) -> list[Product]:
         """Search products by vector similarity."""

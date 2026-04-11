@@ -79,8 +79,11 @@ class ProductService:
     def list_products(self) -> list[Product]:
         return self.product_repository.list_products()
 
-    def get_all_products(self) -> list[Product]:
-        return self.list_products()
+    def get_all_products(self, page: int = 1, page_size: int = 10) -> list[Product]:
+        safe_page = max(1, page)
+        safe_page_size = max(1, min(page_size, 50))
+        offset = (safe_page - 1) * safe_page_size
+        return self.product_repository.list_products_paginated(offset=offset, limit=safe_page_size)
 
     def get_product_by_id(self, product_id: uuid.UUID) -> Product | None:
         return self.get_product(product_id)
