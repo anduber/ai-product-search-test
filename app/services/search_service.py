@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from fastapi import Depends
-from sqlalchemy import case, literal, or_, select
+from sqlalchemy import case, func, literal, select
 from sqlalchemy.orm import Session
 
 from app.ai.runtime.embeddings import BaseEmbeddingService
@@ -28,15 +28,16 @@ class SearchService:
         if not keywords:
             return literal(0.0)
 
-        conditions = [
-                         Product.name.ilike(f"%{keyword}%")
-                         for keyword in keywords
-                     ] + [
-                         Product.description.ilike(f"%{keyword}%")
-                         for keyword in keywords
-                     ]
+        per_keyword_scores = [
+            func.greatest(
+                case((Product.name.ilike(f"%{kw}%"), literal(1.0)), else_=literal(0.0)),
+                case((Product.description.ilike(f"%{kw}%"), literal(0.5)), else_=literal(0.0)),
+            )
+            for kw in keywords
+        ]
 
-        return case((or_(*conditions), literal(1.0)), else_=literal(0.0))
+        raw_sum = sum(per_keyword_scores[1:], per_keyword_scores[0])
+        return raw_sum / literal(float(len(keywords)))
 
     def search_products(self, query: str, limit: int = 10) -> SearchResponse:
         normalized_query = query.strip().lower()
@@ -82,7 +83,7 @@ class SearchService:
                 price=row.price,
                 category=row.category,
                 similarity_score=round(float(row.similarity_score or 0.0), 4),
-                keyword_score=float(row.keyword_score or 0.0),
+                keyword_score=round(float(row.keyword_score or 0.0), 4),
                 final_score=round(float(row.final_score or 0.0), 4),
             )
             for row in rows
