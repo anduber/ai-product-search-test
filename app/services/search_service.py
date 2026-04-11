@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.db.database import get_db
 from app.db.models import Product, ProductEmbedding
 from app.schemas.search import SearchResponse, SearchResult
+from app.services.query_understanding import QueryUnderstandingService
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,7 @@ class SearchService:
     def __init__(self, db: Session, embedding_service: BaseEmbeddingService):
         self.db = db
         self.embedding_service = embedding_service
+        self.query_understanding = QueryUnderstandingService()
 
     def _extract_keywords(self, query: str) -> list[str]:
         return [token for token in query.strip().lower().split() if len(token) >= 2]
@@ -40,11 +42,11 @@ class SearchService:
         return raw_sum / literal(float(len(keywords)))
 
     def search_products(self, query: str, limit: int = 10) -> SearchResponse:
-        normalized_query = query.strip().lower()
-        keywords = self._extract_keywords(normalized_query)
+        processed_query = self.query_understanding.process(query)
+        keywords = self._extract_keywords(processed_query)
 
         try:
-            query_embedding = self.embedding_service.embed_text(normalized_query)
+            query_embedding = self.embedding_service.embed_text(processed_query)
         except Exception as exc:
             logger.exception("Failed to generate query embedding")
             raise RuntimeError("Failed to generate query embedding") from exc

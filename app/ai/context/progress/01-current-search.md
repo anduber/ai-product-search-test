@@ -33,6 +33,7 @@ and retrieves results through a hybrid scoring pipeline at query time.
 ### Services (`app/services/`)
 - `ProductService` — single + bulk product creation with auto-embedding; paginated listing
 - `SearchService` — full hybrid search pipeline (see below)
+- `QueryUnderstandingService` — rule-based query preprocessing (normalize → synonyms → expand)
 
 ### Search Pipeline (`app/services/search_service.py`)
 Hybrid scoring with two signals combined into `final_score`:
@@ -40,7 +41,7 @@ Hybrid scoring with two signals combined into `final_score`:
 | Signal | Weight | How |
 |---|---|---|
 | Semantic similarity | 0.8 | `1 - cosine_distance(query_embedding, product_embedding)` |
-| Keyword match | 0.2 | `CASE WHEN name/description ILIKE %keyword% THEN 1.0 ELSE 0.0` |
+| Keyword match | 0.2 | Per-keyword weighted: name match=1.0, description match=0.5, normalized by keyword count |
 
 - Filters: `similarity >= SEARCH_MIN_SIMILARITY` (default 0.45, env-configurable)
 - Limit: 1–50 (clamped), default 10
@@ -67,7 +68,7 @@ Env vars read at startup via `Settings`: `DATABASE_URL`, `GOOGLE_API_KEY`,
 - `ProductService.search_products()` and `get_top_products()` are stubs (return `None`).
 - No authentication or rate-limiting on any endpoint.
 - No test suite exists yet.
-- Keyword scoring is binary (0 or 1); no TF-IDF or partial-match weighting.
+- Keyword scoring is weighted (name=1.0, desc=0.5, normalized) — binary version replaced.
 - `ProductReview` model is defined but unused in search ranking.
 
 ## Next Steps
