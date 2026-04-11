@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models import Product, ProductEmbedding
-from app.ai.embeddings import BaseEmbeddingService
-from app.ai.embeddings.factory import get_embedding_service
+from app.ai.runtime.embeddings import BaseEmbeddingService
+from app.ai.runtime.embeddings.factory import get_embedding_service
 from app.repositories.product_embedding_repository import ProductEmbeddingRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.product import ProductCreate

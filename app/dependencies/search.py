@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app.ai.embeddings.factory import get_embedding_service
+from app.ai.runtime.embeddings.factory import get_embedding_service
 from app.db.database import get_db
 from app.services.search_service import SearchService
 

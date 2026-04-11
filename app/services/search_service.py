@@ -6,8 +6,8 @@ from fastapi import Depends
 from sqlalchemy import case, literal, or_, select
 from sqlalchemy.orm import Session
 
-from app.ai.embeddings import BaseEmbeddingService
-from app.ai.embeddings.factory import get_embedding_service
+from app.ai.runtime.embeddings import BaseEmbeddingService
+from app.ai.runtime.embeddings.factory import get_embedding_service
 from app.core.config import settings
 from app.db.database import get_db
 from app.db.models import Product, ProductEmbedding
